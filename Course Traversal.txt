@@ -1,0 +1,71 @@
+Q1.
+
+Gremlin Command: 
+
+gremlin> g = TinkerGraph.open().traversal()
+
+gremlin> g.addV().property(id, 'CS101').as('v1').addV().property(id, 'CS201').as('v2').addV().property(id, 'CS220').as('v3').addV().property(id, 'CS334').as('v4').addV().property(id, 'CS420').as('v5').addV().property(id,'CS681').as('v6').addV().property(id, 'CS400').as('v7').addV().property(id, 'CS526').as('v8').addE('requires pre-req').from('v2').to('v1').addE('requires pre-req').from('v3').to('v2').addE('requires pre-req').from('v4').to('v2').addE('requires pre-req').from('v5').to('v3').addE('is a co-req of').from('v5').to('v3').addE('requires pre-req').from('v6').to('v4').addE('requires pre-req').from('v7').to('v4').addE('requires pre-req').from('v8').to('v7').addE('is a co-req of').from('v8').to('v7').iterate()
+
+Output:  
+
+gremlin> g
+graphtraversalsource[tinkergraph[vertices:8 edges:9], standard]
+
+Explanation: 
+The first command is creating a new instance(object) of the graph and opening it, the name of the object is 'g', which stores information about traversing a graph. In the given problem we are required to create a graph so we need to add vertices and edges, there are total 8 vertices and 9 edges in the given graph(as can be verified by the output). So we need to add first all the vertices and connect them with respective edges. The addV() function is used to add the vertices to the graph along with the label (can be given any name but it is better to given some meaningful labels). The property() is used to assign a unique identifier(here we are giving it as Course Name i.e. CS101). The as() function provides a reference that can be used to select a particular vertex using this reference(like when adding edges). 
+								The addE() function is used to create new edge with the specified label(for example: 
+'requires pre-req' (given in the question) or any label that makes sense). The from() and to() functions are used to make the edge directed by specifying where the edge is from (provides reference of the vertex) and where the edge goes to(provides reference of the vertex). The iterate() function is used to iterate over all the instances(which calls Pipe.next() method for all instances) and here it is used in the end to iterate over all instances in the current traversal. And the output can be seen once we print/echo the our graph instance('g').
+
+Q2.
+
+Gremlin Command:
+
+gremlin> g.V().as('a').out('is a co-req of').as('b').select('a','b')
+
+Output:  
+
+==>[a:v[CS420],b:v[CS220]]
+==>[a:v[CS526],b:v[CS400]]
+
+Explanation:
+From the above query 'g' is instance(object) of the graph which stores information about graph traversal and the function V() is used to return vertices of the graph. The as('a') function provides a reference that can be used to select a particular vertex using this reference(here by 'a'). The out() function is used to select the outgoing edges of the vertex and for every vertex I am checking whether the out('is a co-req of') (whether the outgoing edge is an edge that is labeled as 'is a co-req of'). Again the as('b') function provides a reference that can be used to select a particular vertex using this reference(here by 'b'). The select('a','b') outputs pairs of ‘a’ and ‘b’ i.e. edges, so what I am trying to do here is I am picking vertex ('a') whose outgoing edge is a directed towards some other vertex('b') and we are picking such pairs which has an edge from 'a' to 'b' with the label of that edge as 'is a co-req of'.
+
+Since we are asked to output just the doubly-connected vertices, the basic thought process here is to check and print all those vertices pair who have an edge labeled as 'is a co-req of' between them, because those vertices pair will also have another edge named 'requires pre-req' hence making it a doubly-connected pair. So, I am just select all those vertex pair that share an edge that are labeled as 'is a co-req of' and providing them as output
+
+Q3.
+
+gremlin> g.V().has(id,'CS681').repeat(out().dedup()).emit()
+
+Output:
+
+==>v[CS334]
+==>v[CS201]
+==>v[CS101]
+
+Explaination:
+Here 'g' is instance(object) of the graph which stores information about graph traversal and the function V() is used to return vertices of the graph. The has() function is used to select the vertex by the given id (if present), here ‘CS681’. The repeat() function is used for looping through the parameters that are specified inside it. out() is given as the argument in the repeat function. Thus the repeat function will be looping/traversing through all the outgoing edges of graph g. The dedup() function is simply used to remove duplicate paths (basically to remove duplicacies (CS420 has 2 out going edges so it will be counted as one)). Finally the emit() function is used to output all the traversed vertices by their ids(here the vertex id is the course name('CS220')) which is the required output.
+
+Here, I am just selecting a vertex for whom we need to proivde ancestors. Then, for all the ancesters we just need to traverse upwards until the root node is reached(ignoring the duplicate outward edges like the one labeled as 'is a co-req of'). The dedup() function takes care of all the duplicate edges and repeat() function with out() as its argument will loop/traverse through the graph in upward direction. Finally the emit() function will keep on printing all the vertices that are looped through in the repeat() function thereby, giving all the ancestors of the selected original vertex.
+
+Q4.
+
+g.V().has(id,'CS101').emit().repeat(__.in('requires pre-req')).tail().path().unfold().count()
+
+Output:
+
+==>5
+
+Explanation:
+Here 'g' is instance(object) of the graph which stores information about graph and the function V() is used to return vertices of the graph. The has() function is used to select the vertex by the given id (if present), here ‘CS201’. The emit() function is used to output all the traversed vertices by their ids that is first it will give 'CS201' then it will enter in repeat() function. The repeat() function is used for looping through the parameters that are specified inside it. in('requires pre-req') is given as the argument in the repeat function. Thus, the repeat function will be looping/traversing through all the vertices whose incoming edges has label named 'requires pre-req' (which will help us to loop through the graph as there is an egde with label 'requires pre-req' between every pair of vertices/nodes). 
+							The tail() function is used to output the last n - objects/instances based on the argument given in the
+function, tail(3) will give last 3 objects and tail(1)/tail() will output/print the last object/instance. The Path() function will give the path from first vertex to last vertex in a particular path and the unfold() function will display the vertices of the path line by line. Finally, counting all the vertices from the path that I have got will give me the required depth that will be the max depth from the given vertex. The count() function will count the total number of lines given by the unfold() function (basically we are counting vertices here) and will display it as the output which will be our required output.
+
+So basically, first I selected a vertex from where I want to calculate the max depth, after that I want to move downward in the graph which I have achieved by using the in() function(checking all the incoming edges for this vertex), and then I have picked one of those vertex which had incoming edge to the original selected vertex and repeated this step until I reach the leaf nodes. Thus, there will be many paths with different depths. So to get the one with the max depth, I selected the last vertex and then to count the number of vertices, I used unfold() function and just used count() function to give the max depth from the original selected vertex to the last vertex(deepest leaf node) 
+
+
+******************************
+Bonus Explanation:
+
+I have expressed query for Q1 as 2 commands and queries of Q2-Q4 as a single command(they are SAME as the above)
+
+*****************************
